@@ -10,7 +10,9 @@ export type AppId =
   | "monitor"
   | "about"
   | "gallery"
-  | "music";
+  | "music"
+  | "preview";
+
 
 export interface WindowState {
   id: string;
