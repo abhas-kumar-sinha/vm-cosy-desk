@@ -64,6 +64,7 @@ const APP_TITLES: Record<AppId, string> = {
   about: "About This System",
   gallery: "Image Viewer",
   music: "Music Player",
+  preview: "Preview",
 };
 
 const DEFAULT_SIZES: Partial<Record<AppId, { w: number; h: number }>> = {
@@ -77,7 +78,9 @@ const DEFAULT_SIZES: Partial<Record<AppId, { w: number; h: number }>> = {
   about: { w: 520, h: 420 },
   gallery: { w: 780, h: 560 },
   music: { w: 720, h: 480 },
+  preview: { w: 900, h: 620 },
 };
+
 
 export const useOS = create<OSState>((set, get) => ({
   windows: [],

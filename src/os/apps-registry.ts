@@ -103,7 +103,16 @@ export const APPS: AppMeta[] = [
     category: "Media",
     description: "Play music",
   },
+  {
+    id: "preview",
+    name: "Preview",
+    icon: FileText,
+    color: "from-cyan-500 to-blue-700",
+    category: "Media",
+    description: "Preview files (image, video, audio, PDF, text)",
+  },
 ];
+
 
 export const APP_MAP: Record<AppId, AppMeta> = Object.fromEntries(
   APPS.map((a) => [a.id, a]),
