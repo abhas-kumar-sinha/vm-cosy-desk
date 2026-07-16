@@ -113,7 +113,7 @@ export function Desktop() {
       {/* Windows */}
       {windows.map((w) => (
         <div key={w.id} data-window>
-          <AppWindow win={w}>{renderApp(w.appId)}</AppWindow>
+          <AppWindow win={w}>{renderApp(w)}</AppWindow>
         </div>
       ))}
 

@@ -93,17 +93,18 @@ export function AppWindow({ win, children }: Props) {
   return (
     <div
       onMouseDown={() => focus(win.id)}
-      className="absolute flex flex-col overflow-hidden rounded-xl glass-window"
+      className="absolute flex flex-col overflow-hidden rounded-xl glass-window animate-window-open"
       style={{
         left: win.x,
         top: win.y,
         width: win.width,
         height: win.height,
         zIndex: win.zIndex,
-        outline: isActive ? "1px solid oklch(1 0 0 / 0.15)" : "1px solid transparent",
-        transition: "outline-color 200ms",
+        outline: isActive ? "1px solid oklch(1 0 0 / 0.18)" : "1px solid transparent",
+        transition: "outline-color 200ms, box-shadow 200ms, left 180ms cubic-bezier(0.16,1,0.3,1), top 180ms cubic-bezier(0.16,1,0.3,1), width 180ms cubic-bezier(0.16,1,0.3,1), height 180ms cubic-bezier(0.16,1,0.3,1)",
       }}
     >
+
       {/* Header */}
       <div
         onMouseDown={startDrag}
