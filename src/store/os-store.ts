@@ -10,7 +10,9 @@ export type AppId =
   | "monitor"
   | "about"
   | "gallery"
-  | "music";
+  | "music"
+  | "preview";
+
 
 export interface WindowState {
   id: string;
@@ -62,6 +64,7 @@ const APP_TITLES: Record<AppId, string> = {
   about: "About This System",
   gallery: "Image Viewer",
   music: "Music Player",
+  preview: "Preview",
 };
 
 const DEFAULT_SIZES: Partial<Record<AppId, { w: number; h: number }>> = {
@@ -75,7 +78,9 @@ const DEFAULT_SIZES: Partial<Record<AppId, { w: number; h: number }>> = {
   about: { w: 520, h: 420 },
   gallery: { w: 780, h: 560 },
   music: { w: 720, h: 480 },
+  preview: { w: 900, h: 620 },
 };
+
 
 export const useOS = create<OSState>((set, get) => ({
   windows: [],
@@ -168,10 +173,11 @@ export const useOS = create<OSState>((set, get) => ({
           x: 0,
           y: 32,
           width: screen.width,
-          height: screen.height - 32 - 76,
+          height: screen.height - 32,
         };
       }),
     })),
+
 
   setLauncherOpen: (v) => set({ launcherOpen: v, showActivities: false }),
   setWallpaper: (w) => set({ wallpaper: w }),
