@@ -168,10 +168,11 @@ export const useOS = create<OSState>((set, get) => ({
           x: 0,
           y: 32,
           width: screen.width,
-          height: screen.height - 32 - 76,
+          height: screen.height - 32,
         };
       }),
     })),
+
 
   setLauncherOpen: (v) => set({ launcherOpen: v, showActivities: false }),
   setWallpaper: (w) => set({ wallpaper: w }),
