@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useOS } from "@/store/os-store";
 import {
   Folder,
   FileText,
@@ -12,43 +13,98 @@ import {
   Search,
   Grid3x3,
   List,
+  FileType2,
+  FileCode,
+  Star,
 } from "lucide-react";
+
+type Kind = "folder" | "image" | "video" | "audio" | "pdf" | "text" | "code" | "file";
 
 interface Entry {
   name: string;
-  type: "folder" | "file";
+  kind: Kind;
   size?: string;
   modified?: string;
+  url?: string;
+  content?: string;
 }
+
+const README = `# LovableOS
+
+A Linux-style web desktop for your VM.
+
+## Features
+- Draggable / resizable / maximizable windows
+- File previews: image, video, audio, PDF, text, code
+- Terminal, editor, browser, calculator, monitor
+- Overview (F1), Launcher (Alt+F2), and quick menu
+
+## Tips
+- Double-click any file to preview it
+- Drag windows by the title bar
+- Double-click the title bar to maximize
+`;
+
+const NOTES = `Todo:
+- Provision new VM disks
+- Sync backups to S3
+- Rotate SSH keys every 90 days
+- Review firewall rules
+
+Reminder: renew TLS cert before end of quarter.
+`;
+
+const BASHRC = `# ~/.bashrc
+
+export PS1='\\[\\e[38;5;208m\\]\\u@\\h\\[\\e[0m\\]:\\[\\e[38;5;39m\\]\\w\\[\\e[0m\\]$ '
+export EDITOR=nano
+alias ll='ls -alh'
+alias gs='git status'
+alias ..='cd ..'
+
+# Path
+export PATH="$HOME/.local/bin:$PATH"
+`;
+
+const SAMPLE_IMG = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1600&q=80";
+const SAMPLE_IMG2 = "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1600&q=80";
+const SAMPLE_VIDEO = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+const SAMPLE_AUDIO = "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3";
+const SAMPLE_PDF = "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf";
 
 const TREE: Record<string, Entry[]> = {
   "/home/user": [
-    { name: "Documents", type: "folder", modified: "2 days ago" },
-    { name: "Downloads", type: "folder", modified: "1 hour ago" },
-    { name: "Pictures", type: "folder", modified: "1 week ago" },
-    { name: "Music", type: "folder", modified: "3 weeks ago" },
-    { name: "Videos", type: "folder", modified: "1 month ago" },
-    { name: "README.md", type: "file", size: "1.2 KB", modified: "today" },
-    { name: "notes.txt", type: "file", size: "342 B", modified: "today" },
-    { name: ".bashrc", type: "file", size: "2.1 KB", modified: "6 months ago" },
+    { name: "Documents", kind: "folder", modified: "2 days ago" },
+    { name: "Downloads", kind: "folder", modified: "1 hour ago" },
+    { name: "Pictures", kind: "folder", modified: "1 week ago" },
+    { name: "Music", kind: "folder", modified: "3 weeks ago" },
+    { name: "Videos", kind: "folder", modified: "1 month ago" },
+    { name: "README.md", kind: "text", size: "1.2 KB", modified: "today", content: README },
+    { name: "notes.txt", kind: "text", size: "342 B", modified: "today", content: NOTES },
+    { name: ".bashrc", kind: "code", size: "2.1 KB", modified: "6 months ago", content: BASHRC },
   ],
   "/home/user/Documents": [
-    { name: "resume.pdf", type: "file", size: "184 KB", modified: "5 days ago" },
-    { name: "budget.xlsx", type: "file", size: "44 KB", modified: "1 week ago" },
-    { name: "projects", type: "folder", modified: "2 weeks ago" },
+    { name: "report.pdf", kind: "pdf", size: "184 KB", modified: "5 days ago", url: SAMPLE_PDF },
+    { name: "server.conf", kind: "code", size: "1.4 KB", modified: "1 week ago", content: "server {\n  listen 443 ssl;\n  server_name lovable.dev;\n  root /var/www/html;\n}\n" },
+    { name: "projects", kind: "folder", modified: "2 weeks ago" },
   ],
   "/home/user/Downloads": [
-    { name: "lovable-os.iso", type: "file", size: "2.4 GB", modified: "1 hour ago" },
-    { name: "wallpaper.jpg", type: "file", size: "3.1 MB", modified: "3 hours ago" },
+    { name: "landscape.jpg", kind: "image", size: "2.8 MB", modified: "1 hour ago", url: SAMPLE_IMG },
+    { name: "city.jpg", kind: "image", size: "3.1 MB", modified: "3 hours ago", url: SAMPLE_IMG2 },
+    { name: "sample.mp4", kind: "video", size: "158 MB", modified: "yesterday", url: SAMPLE_VIDEO },
   ],
   "/home/user/Pictures": [
-    { name: "sunset.jpg", type: "file", size: "2.8 MB", modified: "1 week ago" },
-    { name: "screenshot.png", type: "file", size: "512 KB", modified: "yesterday" },
+    { name: "mountain.jpg", kind: "image", size: "2.8 MB", modified: "1 week ago", url: SAMPLE_IMG },
+    { name: "night.jpg", kind: "image", size: "512 KB", modified: "yesterday", url: SAMPLE_IMG2 },
   ],
-  "/home/user/Music": [],
-  "/home/user/Videos": [],
+  "/home/user/Music": [
+    { name: "ambient.mp3", kind: "audio", size: "4.2 MB", modified: "1 week ago", url: SAMPLE_AUDIO },
+  ],
+  "/home/user/Videos": [
+    { name: "bunny.mp4", kind: "video", size: "158 MB", modified: "2 weeks ago", url: SAMPLE_VIDEO },
+  ],
   "/home/user/Documents/projects": [
-    { name: "lovable-os", type: "folder", modified: "today" },
+    { name: "lovable-os", kind: "folder", modified: "today" },
   ],
 };
 
@@ -61,7 +117,32 @@ const SIDEBAR = [
   { label: "Videos", path: "/home/user/Videos", icon: Video },
 ];
 
+function iconFor(kind: Kind) {
+  switch (kind) {
+    case "folder": return Folder;
+    case "image": return ImageIcon;
+    case "video": return Video;
+    case "audio": return Music;
+    case "pdf": return FileType2;
+    case "code": return FileCode;
+    default: return FileText;
+  }
+}
+
+function colorFor(kind: Kind) {
+  switch (kind) {
+    case "folder": return "text-accent-orange";
+    case "image": return "text-pink-400";
+    case "video": return "text-purple-400";
+    case "audio": return "text-lime-400";
+    case "pdf": return "text-rose-400";
+    case "code": return "text-sky-400";
+    default: return "text-accent-teal";
+  }
+}
+
 export function FilesApp() {
+  const openApp = useOS((s) => s.openApp);
   const [path, setPath] = useState("/home/user");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [query, setQuery] = useState("");
@@ -72,10 +153,15 @@ export function FilesApp() {
   const crumbs = path.split("/").filter(Boolean);
 
   const openEntry = (e: Entry) => {
-    if (e.type === "folder") {
+    if (e.kind === "folder") {
       const next = `${path === "/" ? "" : path}/${e.name}`;
       if (TREE[next] !== undefined) setPath(next);
+      return;
     }
+    openApp("preview", {
+      title: e.name,
+      payload: { kind: e.kind, url: e.url, name: e.name, content: e.content },
+    });
   };
 
   return (
@@ -91,7 +177,7 @@ export function FilesApp() {
             <button
               key={s.path}
               onClick={() => setPath(s.path)}
-              className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition ${
+              className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition press ${
                 active ? "bg-primary/25 text-white" : "text-white/75 hover:bg-white/5"
               }`}
             >
@@ -104,17 +190,18 @@ export function FilesApp() {
         <div className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-wider text-white/40">
           Devices
         </div>
-        <button className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-white/75 hover:bg-white/5">
+        <button className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-white/75 transition hover:bg-white/5 press">
           <HardDrive className="h-4 w-4" /> Root (/)
+        </button>
+        <button className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-white/75 transition hover:bg-white/5 press">
+          <Star className="h-4 w-4 text-yellow-400" /> Starred
         </button>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-2 border-b border-white/5 bg-black/20 px-3 py-2">
           <div className="flex flex-1 items-center gap-1 text-sm text-white/80">
-            <button onClick={() => setPath("/home/user")} className="hover:text-primary">
-              /
-            </button>
+            <button onClick={() => setPath("/home/user")} className="hover:text-primary">/</button>
             {crumbs.map((c, i) => (
               <div key={i} className="flex items-center gap-1">
                 <ChevronRight className="h-3.5 w-3.5 text-white/40" />
@@ -137,16 +224,10 @@ export function FilesApp() {
             />
           </div>
           <div className="flex items-center gap-1 rounded-md bg-white/5 p-0.5">
-            <button
-              onClick={() => setView("grid")}
-              className={`rounded p-1 ${view === "grid" ? "bg-white/10" : ""}`}
-            >
+            <button onClick={() => setView("grid")} className={`rounded p-1 transition press ${view === "grid" ? "bg-white/10" : ""}`}>
               <Grid3x3 className="h-3.5 w-3.5" />
             </button>
-            <button
-              onClick={() => setView("list")}
-              className={`rounded p-1 ${view === "list" ? "bg-white/10" : ""}`}
-            >
+            <button onClick={() => setView("list")} className={`rounded p-1 transition press ${view === "list" ? "bg-white/10" : ""}`}>
               <List className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -159,24 +240,30 @@ export function FilesApp() {
             </div>
           )}
           {view === "grid" ? (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2">
-              {filtered.map((e) => (
-                <button
-                  key={e.name}
-                  onClick={() => setSelected(e.name)}
-                  onDoubleClick={() => openEntry(e)}
-                  className={`flex flex-col items-center gap-1 rounded-lg p-3 text-center transition ${
-                    selected === e.name ? "bg-primary/25" : "hover:bg-white/5"
-                  }`}
-                >
-                  {e.type === "folder" ? (
-                    <Folder className="h-10 w-10 text-accent-orange" />
-                  ) : (
-                    <FileText className="h-10 w-10 text-accent-teal" />
-                  )}
-                  <span className="line-clamp-2 text-xs">{e.name}</span>
-                </button>
-              ))}
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2">
+              {filtered.map((e, i) => {
+                const Icon = iconFor(e.kind);
+                return (
+                  <button
+                    key={e.name}
+                    onClick={() => setSelected(e.name)}
+                    onDoubleClick={() => openEntry(e)}
+                    style={{ animationDelay: `${Math.min(i, 12) * 24}ms` }}
+                    className={`animate-float-up flex flex-col items-center gap-1.5 rounded-lg p-3 text-center transition press ${
+                      selected === e.name ? "bg-primary/25 ring-1 ring-primary/40" : "hover:bg-white/5"
+                    }`}
+                  >
+                    {e.kind === "image" && e.url ? (
+                      <div className="h-14 w-14 overflow-hidden rounded-md shadow-md">
+                        <img src={e.url} alt={e.name} className="h-full w-full object-cover" />
+                      </div>
+                    ) : (
+                      <Icon className={`h-10 w-10 ${colorFor(e.kind)}`} />
+                    )}
+                    <span className="line-clamp-2 text-xs">{e.name}</span>
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <table className="w-full text-sm">
@@ -188,27 +275,26 @@ export function FilesApp() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((e) => (
-                  <tr
-                    key={e.name}
-                    onClick={() => setSelected(e.name)}
-                    onDoubleClick={() => openEntry(e)}
-                    className={`cursor-pointer border-t border-white/5 ${
-                      selected === e.name ? "bg-primary/25" : "hover:bg-white/5"
-                    }`}
-                  >
-                    <td className="flex items-center gap-2 py-1.5 pl-2">
-                      {e.type === "folder" ? (
-                        <Folder className="h-4 w-4 text-accent-orange" />
-                      ) : (
-                        <FileText className="h-4 w-4 text-accent-teal" />
-                      )}
-                      {e.name}
-                    </td>
-                    <td className="text-white/60">{e.size ?? "—"}</td>
-                    <td className="text-white/60">{e.modified}</td>
-                  </tr>
-                ))}
+                {filtered.map((e) => {
+                  const Icon = iconFor(e.kind);
+                  return (
+                    <tr
+                      key={e.name}
+                      onClick={() => setSelected(e.name)}
+                      onDoubleClick={() => openEntry(e)}
+                      className={`cursor-pointer border-t border-white/5 transition ${
+                        selected === e.name ? "bg-primary/25" : "hover:bg-white/5"
+                      }`}
+                    >
+                      <td className="flex items-center gap-2 py-1.5 pl-2">
+                        <Icon className={`h-4 w-4 ${colorFor(e.kind)}`} />
+                        {e.name}
+                      </td>
+                      <td className="text-white/60">{e.size ?? "—"}</td>
+                      <td className="text-white/60">{e.modified}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
