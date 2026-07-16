@@ -16,6 +16,8 @@ import { MonitorApp } from "@/os/apps/MonitorApp";
 import { AboutApp } from "@/os/apps/AboutApp";
 import { GalleryApp } from "@/os/apps/GalleryApp";
 import { MusicApp } from "@/os/apps/MusicApp";
+import { PreviewApp } from "@/os/apps/PreviewApp";
+import type { WindowState } from "@/store/os-store";
 
 const WALLPAPERS: Record<string, string> = {
   aurora:
@@ -28,8 +30,8 @@ const WALLPAPERS: Record<string, string> = {
     "radial-gradient(circle at 70% 80%, oklch(0.7 0.22 30 / 0.6), transparent 60%), linear-gradient(180deg, oklch(0.30 0.18 45), oklch(0.55 0.20 25))",
 };
 
-function renderApp(appId: AppId) {
-  switch (appId) {
+function renderApp(win: WindowState) {
+  switch (win.appId) {
     case "terminal": return <TerminalApp />;
     case "files": return <FilesApp />;
     case "editor": return <EditorApp />;
@@ -40,8 +42,10 @@ function renderApp(appId: AppId) {
     case "about": return <AboutApp />;
     case "gallery": return <GalleryApp />;
     case "music": return <MusicApp />;
+    case "preview": return <PreviewApp winId={win.id} />;
   }
 }
+
 
 const DESKTOP_ICONS: AppId[] = ["files", "terminal", "editor", "about"];
 
