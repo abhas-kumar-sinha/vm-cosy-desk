@@ -4,15 +4,10 @@ export type AppId =
   | "files"
   | "terminal"
   | "editor"
-  | "browser"
-  | "settings"
-  | "calculator"
   | "monitor"
-  | "about"
-  | "gallery"
-  | "music"
-  | "preview";
-
+  | "services"
+  | "docker"
+  | "settings";
 
 export interface WindowState {
   id: string;
@@ -36,7 +31,6 @@ interface OSState {
   launcherOpen: boolean;
   wallpaper: string;
   accent: string;
-  bootDone: boolean;
   showActivities: boolean;
 
   openApp: (appId: AppId, opts?: { title?: string; payload?: Record<string, unknown> }) => void;
@@ -49,38 +43,28 @@ interface OSState {
   setLauncherOpen: (v: boolean) => void;
   setWallpaper: (w: string) => void;
   setAccent: (a: string) => void;
-  finishBoot: () => void;
   setActivities: (v: boolean) => void;
 }
 
 const APP_TITLES: Record<AppId, string> = {
   files: "Files",
   terminal: "Terminal",
-  editor: "Text Editor",
-  browser: "Web Browser",
-  settings: "Settings",
-  calculator: "Calculator",
+  editor: "Editor",
   monitor: "System Monitor",
-  about: "About This System",
-  gallery: "Image Viewer",
-  music: "Music Player",
-  preview: "Preview",
+  services: "Services",
+  docker: "Docker",
+  settings: "Settings",
 };
 
 const DEFAULT_SIZES: Partial<Record<AppId, { w: number; h: number }>> = {
-  terminal: { w: 780, h: 480 },
-  files: { w: 900, h: 580 },
-  editor: { w: 820, h: 560 },
-  browser: { w: 1000, h: 640 },
-  settings: { w: 820, h: 560 },
-  calculator: { w: 340, h: 480 },
-  monitor: { w: 820, h: 540 },
-  about: { w: 520, h: 420 },
-  gallery: { w: 780, h: 560 },
-  music: { w: 720, h: 480 },
-  preview: { w: 900, h: 620 },
+  terminal: { w: 860, h: 520 },
+  files: { w: 980, h: 620 },
+  editor: { w: 900, h: 620 },
+  monitor: { w: 900, h: 580 },
+  services: { w: 900, h: 580 },
+  docker: { w: 900, h: 520 },
+  settings: { w: 720, h: 520 },
 };
-
 
 export const useOS = create<OSState>((set, get) => ({
   windows: [],
@@ -89,7 +73,6 @@ export const useOS = create<OSState>((set, get) => ({
   launcherOpen: false,
   wallpaper: "aurora",
   accent: "orange",
-  bootDone: false,
   showActivities: false,
 
   openApp: (appId, opts) => {
@@ -100,7 +83,7 @@ export const useOS = create<OSState>((set, get) => ({
       return;
     }
     const z = get().zCounter + 1;
-    const size = DEFAULT_SIZES[appId] ?? { w: 720, h: 500 };
+    const size = DEFAULT_SIZES[appId] ?? { w: 780, h: 540 };
     const id = `${appId}-${Date.now()}`;
     const offset = get().windows.length * 24;
     set((s) => ({
@@ -178,12 +161,8 @@ export const useOS = create<OSState>((set, get) => ({
       }),
     })),
 
-
   setLauncherOpen: (v) => set({ launcherOpen: v, showActivities: false }),
   setWallpaper: (w) => set({ wallpaper: w }),
   setAccent: (a) => set({ accent: a }),
-  finishBoot: () => set({ bootDone: true }),
   setActivities: (v) => set({ showActivities: v, launcherOpen: false }),
 }));
-
-export const APP_TITLES_EXPORT = APP_TITLES;

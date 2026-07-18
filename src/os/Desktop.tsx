@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useOS, type AppId } from "@/store/os-store";
+import { useOS, type AppId, type WindowState } from "@/store/os-store";
 import { TopBar } from "@/os/TopBar";
 import { Dock } from "@/os/Dock";
 import { AppLauncher } from "@/os/AppLauncher";
@@ -9,15 +9,11 @@ import { APP_MAP } from "@/os/apps-registry";
 import { TerminalApp } from "@/os/apps/TerminalApp";
 import { FilesApp } from "@/os/apps/FilesApp";
 import { EditorApp } from "@/os/apps/EditorApp";
-import { BrowserApp } from "@/os/apps/BrowserApp";
 import { SettingsApp } from "@/os/apps/SettingsApp";
-import { CalculatorApp } from "@/os/apps/CalculatorApp";
 import { MonitorApp } from "@/os/apps/MonitorApp";
-import { AboutApp } from "@/os/apps/AboutApp";
-import { GalleryApp } from "@/os/apps/GalleryApp";
-import { MusicApp } from "@/os/apps/MusicApp";
-import { PreviewApp } from "@/os/apps/PreviewApp";
-import type { WindowState } from "@/store/os-store";
+import { ServicesApp } from "@/os/apps/ServicesApp";
+import { DockerApp } from "@/os/apps/DockerApp";
+import type { AgentSession } from "@/lib/agent";
 
 const WALLPAPERS: Record<string, string> = {
   aurora:
@@ -33,23 +29,18 @@ const WALLPAPERS: Record<string, string> = {
 function renderApp(win: WindowState) {
   switch (win.appId) {
     case "terminal": return <TerminalApp />;
-    case "files": return <FilesApp />;
-    case "editor": return <EditorApp />;
-    case "browser": return <BrowserApp />;
+    case "files":    return <FilesApp openInEditor={(path) => useOS.getState().openApp("editor", { title: path.split("/").pop(), payload: { path } })} />;
+    case "editor":   return <EditorApp initialPath={(win.payload?.path as string | undefined) ?? null} />;
     case "settings": return <SettingsApp />;
-    case "calculator": return <CalculatorApp />;
-    case "monitor": return <MonitorApp />;
-    case "about": return <AboutApp />;
-    case "gallery": return <GalleryApp />;
-    case "music": return <MusicApp />;
-    case "preview": return <PreviewApp winId={win.id} />;
+    case "monitor":  return <MonitorApp />;
+    case "services": return <ServicesApp />;
+    case "docker":   return <DockerApp />;
   }
 }
 
+const DESKTOP_ICONS: AppId[] = ["files", "terminal", "editor", "monitor"];
 
-const DESKTOP_ICONS: AppId[] = ["files", "terminal", "editor", "about"];
-
-export function Desktop() {
+export function Desktop({ session, onLogout }: { session: AgentSession; onLogout: () => void }) {
   const windows = useOS((s) => s.windows);
   const wallpaper = useOS((s) => s.wallpaper);
   const openApp = useOS((s) => s.openApp);
@@ -85,9 +76,8 @@ export function Desktop() {
         setCtxMenu({ x: e.clientX, y: e.clientY });
       }}
     >
-      <TopBar />
+      <TopBar session={session} onLogout={onLogout} />
 
-      {/* Desktop icons */}
       <div className="absolute left-4 top-12 grid grid-cols-1 gap-3">
         {DESKTOP_ICONS.map((id) => {
           const app = APP_MAP[id];
@@ -99,9 +89,7 @@ export function Desktop() {
               onClick={(e) => e.currentTarget.focus()}
               className="group flex w-20 flex-col items-center gap-1 rounded-lg p-2 text-white outline-none transition hover:bg-white/10 focus:bg-primary/25"
             >
-              <div
-                className={`grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br ${app.color} shadow-lg`}
-              >
+              <div className={`grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br ${app.color} shadow-lg`}>
                 <Icon className="h-6 w-6 drop-shadow" />
               </div>
               <span className="text-center text-[11px] font-medium drop-shadow">{app.name}</span>
@@ -110,7 +98,6 @@ export function Desktop() {
         })}
       </div>
 
-      {/* Windows */}
       {windows.map((w) => (
         <div key={w.id} data-window>
           <AppWindow win={w}>{renderApp(w)}</AppWindow>
@@ -122,16 +109,11 @@ export function Desktop() {
       <Dock />
 
       {ctxMenu && (
-        <div
-          className="fixed z-[999] w-52 overflow-hidden rounded-lg py-1 text-sm glass-panel"
-          style={{ left: ctxMenu.x, top: ctxMenu.y }}
-        >
+        <div className="fixed z-[999] w-52 overflow-hidden rounded-lg py-1 text-sm glass-panel" style={{ left: ctxMenu.x, top: ctxMenu.y }}>
           <MenuItem onClick={() => openApp("terminal")}>Open Terminal</MenuItem>
           <MenuItem onClick={() => openApp("files")}>Open Files</MenuItem>
           <div className="my-1 border-t border-white/10" />
-          <div className="px-3 py-1 text-[11px] uppercase tracking-wider text-white/40">
-            Change background
-          </div>
+          <div className="px-3 py-1 text-[11px] uppercase tracking-wider text-white/40">Change background</div>
           {Object.keys(WALLPAPERS).map((w) => (
             <MenuItem key={w} onClick={() => setWallpaper(w)}>
               <span className="capitalize">{w}</span>
@@ -145,13 +127,7 @@ export function Desktop() {
   );
 }
 
-function MenuItem({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-}) {
+function MenuItem({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
   return (
     <button
       onClick={onClick}

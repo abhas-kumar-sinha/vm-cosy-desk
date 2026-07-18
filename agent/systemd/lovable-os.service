@@ -1,0 +1,22 @@
+[Unit]
+Description=LovableOS Agent (web desktop for this VM)
+After=network.target
+
+[Service]
+Type=simple
+# Run as root so PAM auth + per-user setuid works. Drop privileges via
+# spawn { uid, gid } inside the agent for shell + fs ops.
+User=root
+WorkingDirectory=/opt/lovable-os/agent
+Environment=NODE_ENV=production
+Environment=LOVABLE_OS_CONFIG=/etc/lovable-os/config.json
+ExecStart=/usr/bin/node src/index.js
+Restart=on-failure
+RestartSec=3
+# Sensible sandboxing while still allowing filesystem access
+ProtectSystem=off
+ProtectHome=off
+NoNewPrivileges=false
+
+[Install]
+WantedBy=multi-user.target

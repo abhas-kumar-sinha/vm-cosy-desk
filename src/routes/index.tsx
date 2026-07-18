@@ -1,32 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Desktop } from "@/os/Desktop";
-import { BootScreen } from "@/os/BootScreen";
+import { ConnectionGate } from "@/os/ConnectionGate";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "LovableOS — a Linux desktop for your VM" },
-      {
-        name: "description",
-        content:
-          "A full-featured Linux-style web desktop: windows, dock, terminal, files, editor and more, right in your browser.",
-      },
-      { property: "og:title", content: "LovableOS — Linux desktop in the browser" },
-      {
-        property: "og:description",
-        content:
-          "Feature-rich Linux-inspired desktop UI with terminal, file manager, editor, and system monitor.",
-      },
+      { title: "LovableOS — a real Linux desktop for your VM" },
+      { name: "description", content: "Self-hosted web desktop for Ubuntu/Debian VMs: real files, terminal, editor, systemctl, Docker." },
+      { property: "og:title", content: "LovableOS — real Linux desktop in the browser" },
+      { property: "og:description", content: "Install the agent on your VM and get a full browser desktop with real files, shell, /proc, systemctl and Docker." },
     ],
   }),
   component: Index,
 });
 
 function Index() {
-  return (
-    <>
-      <BootScreen />
-      <Desktop />
-    </>
-  );
+  return <ConnectionGate />;
 }
