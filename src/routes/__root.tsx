@@ -77,21 +77,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "LovableOS — Linux desktop for your VM" },
+      { title: "CloudOS — A real Linux desktop for your VM" },
       {
         name: "description",
         content:
-          "A feature-rich Linux-inspired web desktop with terminal, file manager, editor and more.",
+          "Self-hosted web desktop for Ubuntu/Debian VMs: real files, terminal, editor, systemctl, Docker.",
       },
       { name: "author", content: "LovableOS" },
-      { property: "og:title", content: "LovableOS — Linux desktop for your VM" },
+      { property: "og:title", content: "CloudOS — A real Linux desktop for your VM" },
       {
         property: "og:description",
         content:
-          "A feature-rich Linux-inspired web desktop with terminal, file manager, editor and more.",
+          "Self-hosted web desktop for Ubuntu/Debian VMs: real files, terminal, editor, systemctl, Docker.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "CloudOS — A real Linux desktop for your VM" },
+      { name: "twitter:description", content: "Self-hosted web desktop for Ubuntu/Debian VMs: real files, terminal, editor, systemctl, Docker." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/97ef5024-f4fe-4357-9035-a970e2100578/id-preview-71e1ccac--ffe84f69-0d91-416b-9eed-596af913c654.lovable.app-1784385430013.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/97ef5024-f4fe-4357-9035-a970e2100578/id-preview-71e1ccac--ffe84f69-0d91-416b-9eed-596af913c654.lovable.app-1784385430013.png" },
     ],
     links: [
       {

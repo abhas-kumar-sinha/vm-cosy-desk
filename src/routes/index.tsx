@@ -4,10 +4,10 @@ import { ConnectionGate } from "@/os/ConnectionGate";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "LovableOS — a real Linux desktop for your VM" },
+      { title: "CloudOS — A real Linux desktop for your VM" },
       { name: "description", content: "Self-hosted web desktop for Ubuntu/Debian VMs: real files, terminal, editor, systemctl, Docker." },
-      { property: "og:title", content: "LovableOS — real Linux desktop in the browser" },
-      { property: "og:description", content: "Install the agent on your VM and get a full browser desktop with real files, shell, /proc, systemctl and Docker." },
+      { property: "og:title", content: "CloudOS — A real Linux desktop for your VM" },
+      { property: "og:description", content: "Self-hosted web desktop for Ubuntu/Debian VMs: real files, terminal, editor, systemctl, Docker." },
     ],
   }),
   component: Index,
