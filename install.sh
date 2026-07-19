@@ -29,13 +29,15 @@ else
   git clone "$REPO_URL" "$INSTALL_DIR"
 fi
 
-echo "==> Building web bundle (this can take ~2 min the first time)"
+echo "==> Performing a clean frontend install and rebuild"
 cd "$INSTALL_DIR"
+rm -rf node_modules dist .output
 npm i
 npm run build
 
-echo "==> Installing agent dependencies (compiles node-pty + authenticate-pam)"
+echo "==> Performing a clean agent install"
 cd "$INSTALL_DIR/agent"
+rm -rf node_modules
 npm i
 
 echo "==> Writing /etc/lovable-os/config.json"
@@ -53,8 +55,12 @@ mkdir -p /var/lib/lovable-os/uploads
 
 echo "==> Installing systemd unit"
 cp "$INSTALL_DIR/agent/systemd/lovable-os.service" /etc/systemd/system/lovable-os.service
+systemctl stop lovable-os 2>/dev/null || true
 systemctl daemon-reload
 systemctl enable --now lovable-os
+systemctl restart lovable-os
+systemctl restart lovable-os
+systemctl restart lovable-os
 
 IP="$(hostname -I | awk '{print $1}')"
 echo
