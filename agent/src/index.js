@@ -24,7 +24,6 @@ const config = loadConfig();
 
 const app = express();
 app.disable("x-powered-by");
-app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 app.use(attachSession(config));
 
@@ -32,9 +31,14 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true, agent: "lovable-os", version: "1.0.0", hostname: process.env.HOSTNAME ?? "" });
 });
 
+// tus needs raw request streams — mount BEFORE express.json which would
+// otherwise buffer the body and break PATCH continuations for large files.
+app.use("/api/uploads", requireAuth, uploadsRouter(config));
+
+app.use(express.json({ limit: "2mb" }));
+
 app.use("/api/auth", authRouter(config));
 app.use("/api/fs", requireAuth, fsRouter(config));
-app.use("/api/uploads", requireAuth, uploadsRouter(config));
 app.use("/api/system", requireAuth, systemRouter(config));
 app.use("/api/services", requireAuth, servicesRouter(config));
 app.use("/api/docker", requireAuth, dockerRouter(config));
