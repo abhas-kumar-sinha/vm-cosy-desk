@@ -43,16 +43,9 @@ app.use("/api/system", requireAuth, systemRouter(config));
 app.use("/api/services", requireAuth, servicesRouter(config));
 app.use("/api/docker", requireAuth, dockerRouter(config));
 
-// Serve built web bundle. Look in a few places so the agent works whether
-// the frontend was built with the SPA config (dist/) or the Lovable TanStack
-// preview build (.output/public/).
-const webDistCandidates = [
-  path.resolve(__dirname, "../../dist"),
-  path.resolve(__dirname, "../../.output/public"),
-  path.resolve(__dirname, "../dist"),
-];
-const webDist = webDistCandidates.find((p) => fs.existsSync(p));
-if (webDist) {
+// Serve the built SPA bundle from the project root dist/ directory.
+const webDist = path.resolve(__dirname, "../../dist");
+if (fs.existsSync(webDist)) {
   console.log(`Serving web bundle from ${webDist}`);
   app.use(express.static(webDist, { maxAge: "1h", index: false }));
   app.get(/^(?!\/api\/|\/ws\/).*/, (_req, res) => {
