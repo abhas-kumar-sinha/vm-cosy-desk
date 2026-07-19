@@ -18,7 +18,7 @@ apt-get install -y git curl ca-certificates build-essential python3 libpam0g-dev
 
 if ! command -v node >/dev/null 2>&1 || ! node -v | grep -Eq '^v(20|22)'; then
   echo "==> Installing Node.js 20 (NodeSource)"
-  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
   apt-get install -y nodejs
 fi
 

@@ -47,9 +47,9 @@ app.use("/api/docker", requireAuth, dockerRouter(config));
 const webDist = path.resolve(__dirname, "../../dist");
 if (fs.existsSync(webDist)) {
   console.log(`Serving web bundle from ${webDist}`);
-  app.use(express.static(webDist, { maxAge: "1h", index: false }));
+  app.use(express.static(webDist, { maxAge: 0, index: false }));
   app.get(/^(?!\/api\/|\/ws\/).*/, (_req, res) => {
-    res.sendFile(path.join(webDist, "index.html"));
+    res.sendFile(path.join(webDist, "index.html"), { maxAge: 0, cacheControl: false });
   });
 } else {
   app.get("/", (_req, res) => {
