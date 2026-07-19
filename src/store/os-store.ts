@@ -168,4 +168,5 @@ export const useOS = create<OSState>((set, get) => ({
   setWallpaper: (w) => set({ wallpaper: w }),
   setAccent: (a) => set({ accent: a }),
   setActivities: (v) => set({ showActivities: v, launcherOpen: false }),
+  setFullscreen: (v) => set({ isFullscreen: v }),
 }));
