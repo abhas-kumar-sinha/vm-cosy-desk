@@ -76,6 +76,7 @@ export const useOS = create<OSState>((set, get) => ({
   wallpaper: "aurora",
   accent: "orange",
   showActivities: false,
+  isFullscreen: false,
 
   openApp: (appId, opts) => {
     const existing = get().windows.find((w) => w.appId === appId && !opts?.payload);
