@@ -24,7 +24,6 @@ const config = loadConfig();
 
 const app = express();
 app.disable("x-powered-by");
-app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 app.use(attachSession(config));
 
@@ -32,24 +31,37 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true, agent: "lovable-os", version: "1.0.0", hostname: process.env.HOSTNAME ?? "" });
 });
 
+// tus needs raw request streams — mount BEFORE express.json which would
+// otherwise buffer the body and break PATCH continuations for large files.
+app.use("/api/uploads", requireAuth, uploadsRouter(config));
+
+app.use(express.json({ limit: "2mb" }));
+
 app.use("/api/auth", authRouter(config));
 app.use("/api/fs", requireAuth, fsRouter(config));
-app.use("/api/uploads", requireAuth, uploadsRouter(config));
 app.use("/api/system", requireAuth, systemRouter(config));
 app.use("/api/services", requireAuth, servicesRouter(config));
 app.use("/api/docker", requireAuth, dockerRouter(config));
 
-// Serve built web bundle (packages/web build output) if present.
-const webDist = path.resolve(__dirname, "../../dist");
-if (fs.existsSync(webDist)) {
-  app.use(express.static(webDist));
+// Serve built web bundle. Look in a few places so the agent works whether
+// the frontend was built with the SPA config (dist/) or the Lovable TanStack
+// preview build (.output/public/).
+const webDistCandidates = [
+  path.resolve(__dirname, "../../dist"),
+  path.resolve(__dirname, "../../.output/public"),
+  path.resolve(__dirname, "../dist"),
+];
+const webDist = webDistCandidates.find((p) => fs.existsSync(p));
+if (webDist) {
+  console.log(`Serving web bundle from ${webDist}`);
+  app.use(express.static(webDist, { maxAge: "1h", index: false }));
   app.get(/^(?!\/api\/|\/ws\/).*/, (_req, res) => {
     res.sendFile(path.join(webDist, "index.html"));
   });
 } else {
   app.get("/", (_req, res) => {
     res.status(200).type("text/plain").send(
-      "LovableOS agent is running. Build the web bundle (npm --prefix .. run build) to serve the UI.",
+      "LovableOS agent is running, but no web bundle was found. Run `npm ci && npm run build` in the repo root, then restart the service.",
     );
   });
 }

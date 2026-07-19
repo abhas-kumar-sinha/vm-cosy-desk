@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useOS, type AppId, type WindowState } from "@/store/os-store";
 import { TopBar } from "@/os/TopBar";
 import { Dock } from "@/os/Dock";
@@ -14,16 +14,19 @@ import { MonitorApp } from "@/os/apps/MonitorApp";
 import { ServicesApp } from "@/os/apps/ServicesApp";
 import { DockerApp } from "@/os/apps/DockerApp";
 import type { AgentSession } from "@/lib/agent";
+import { Menu, MenuTrigger, MenuContent, MenuItem, MenuSeparator, MenuLabel, MenuSub } from "@/os/ContextMenu";
 
 const WALLPAPERS: Record<string, string> = {
-  aurora:
-    "radial-gradient(circle at 15% 20%, oklch(0.55 0.20 35 / 0.55), transparent 45%), radial-gradient(circle at 85% 30%, oklch(0.55 0.22 300 / 0.55), transparent 50%), radial-gradient(circle at 50% 90%, oklch(0.55 0.15 220 / 0.55), transparent 55%), linear-gradient(135deg, oklch(0.15 0.03 280), oklch(0.10 0.02 260))",
-  night:
-    "radial-gradient(ellipse at 50% 20%, oklch(0.4 0.15 260 / 0.6), transparent 60%), linear-gradient(180deg, oklch(0.08 0.02 260), oklch(0.14 0.04 250))",
-  forest:
-    "radial-gradient(circle at 30% 30%, oklch(0.55 0.15 145 / 0.5), transparent 55%), linear-gradient(135deg, oklch(0.15 0.05 155), oklch(0.22 0.08 145))",
-  sunset:
-    "radial-gradient(circle at 70% 80%, oklch(0.7 0.22 30 / 0.6), transparent 60%), linear-gradient(180deg, oklch(0.30 0.18 45), oklch(0.55 0.20 25))",
+  sonoma:
+    "radial-gradient(circle at 10% 10%, #FF9E7D 0%, transparent 40%), radial-gradient(circle at 90% 20%, #F28FD1 0%, transparent 45%), radial-gradient(circle at 50% 100%, #6AB6FF 0%, transparent 55%), linear-gradient(180deg, #2A1B4E 0%, #12143F 100%)",
+  sequoia:
+    "radial-gradient(ellipse at 30% 40%, #4A5AE8 0%, transparent 55%), radial-gradient(circle at 80% 70%, #7B4FE8 0%, transparent 55%), linear-gradient(180deg, #0A0E27 0%, #1A0E3F 100%)",
+  bigsur:
+    "radial-gradient(circle at 20% 30%, #F5A891 0%, transparent 50%), radial-gradient(circle at 70% 60%, #7BB4E8 0%, transparent 55%), linear-gradient(180deg, #1E3A5F 0%, #2C1B4E 100%)",
+  ventura:
+    "radial-gradient(circle at 50% 20%, #FF8FAB 0%, transparent 50%), radial-gradient(circle at 50% 100%, #C58FFF 0%, transparent 60%), linear-gradient(180deg, #1A0E3F 0%, #3A1B5F 100%)",
+  monterey:
+    "radial-gradient(circle at 15% 15%, #A594F9 0%, transparent 50%), radial-gradient(circle at 85% 85%, #F5768D 0%, transparent 50%), linear-gradient(135deg, #1B1B2E 0%, #2E1B3E 100%)",
 };
 
 function renderApp(win: WindowState) {
@@ -44,14 +47,7 @@ export function Desktop({ session, onLogout }: { session: AgentSession; onLogout
   const windows = useOS((s) => s.windows);
   const wallpaper = useOS((s) => s.wallpaper);
   const openApp = useOS((s) => s.openApp);
-  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
   const setWallpaper = useOS((s) => s.setWallpaper);
-
-  useEffect(() => {
-    const close = () => setCtxMenu(null);
-    window.addEventListener("click", close);
-    return () => window.removeEventListener("click", close);
-  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -67,73 +63,63 @@ export function Desktop({ session, onLogout }: { session: AgentSession; onLogout
   }, []);
 
   return (
-    <div
-      className="fixed inset-0 overflow-hidden"
-      style={{ background: WALLPAPERS[wallpaper] ?? WALLPAPERS.aurora }}
-      onContextMenu={(e) => {
-        if ((e.target as HTMLElement).closest("[data-window]")) return;
-        e.preventDefault();
-        setCtxMenu({ x: e.clientX, y: e.clientY });
-      }}
-    >
-      <TopBar session={session} onLogout={onLogout} />
+    <Menu>
+      <MenuTrigger asChild>
+        <div
+          className="fixed inset-0 overflow-hidden"
+          style={{ background: WALLPAPERS[wallpaper] ?? WALLPAPERS.sonoma }}
+        >
+          <TopBar session={session} onLogout={onLogout} />
 
-      <div className="absolute left-4 top-12 grid grid-cols-1 gap-3">
-        {DESKTOP_ICONS.map((id) => {
-          const app = APP_MAP[id];
-          const Icon = app.icon;
-          return (
-            <button
-              key={id}
-              onDoubleClick={() => openApp(id)}
-              onClick={(e) => e.currentTarget.focus()}
-              className="group flex w-20 flex-col items-center gap-1 rounded-lg p-2 text-white outline-none transition hover:bg-white/10 focus:bg-primary/25"
-            >
-              <div className={`grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br ${app.color} shadow-lg`}>
-                <Icon className="h-6 w-6 drop-shadow" />
-              </div>
-              <span className="text-center text-[11px] font-medium drop-shadow">{app.name}</span>
-            </button>
-          );
-        })}
-      </div>
+          <div className="absolute right-4 top-10 grid grid-cols-1 gap-3">
+            {DESKTOP_ICONS.map((id) => {
+              const app = APP_MAP[id];
+              const Icon = app.icon;
+              return (
+                <button
+                  key={id}
+                  onDoubleClick={() => openApp(id)}
+                  onClick={(e) => e.currentTarget.focus()}
+                  className="group flex w-20 flex-col items-center gap-1 rounded-lg p-2 text-white outline-none transition hover:bg-white/10 focus:bg-white/15"
+                >
+                  <div className={`grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br ${app.color} shadow-lg ring-1 ring-inset ring-white/10`}>
+                    <Icon className="h-6 w-6 drop-shadow" />
+                  </div>
+                  <span className="text-center text-[11px] font-medium drop-shadow">{app.name}</span>
+                </button>
+              );
+            })}
+          </div>
 
-      {windows.map((w) => (
-        <div key={w.id} data-window>
-          <AppWindow win={w}>{renderApp(w)}</AppWindow>
+          {windows.map((w) => (
+            <div key={w.id} data-window>
+              <AppWindow win={w}>{renderApp(w)}</AppWindow>
+            </div>
+          ))}
+
+          <AppLauncher />
+          <Activities />
+          <Dock />
         </div>
-      ))}
-
-      <AppLauncher />
-      <Activities />
-      <Dock />
-
-      {ctxMenu && (
-        <div className="fixed z-[999] w-52 overflow-hidden rounded-lg py-1 text-sm glass-panel" style={{ left: ctxMenu.x, top: ctxMenu.y }}>
-          <MenuItem onClick={() => openApp("terminal")}>Open Terminal</MenuItem>
-          <MenuItem onClick={() => openApp("files")}>Open Files</MenuItem>
-          <div className="my-1 border-t border-white/10" />
-          <div className="px-3 py-1 text-[11px] uppercase tracking-wider text-white/40">Change background</div>
+      </MenuTrigger>
+      <MenuContent>
+        <MenuLabel>Desktop</MenuLabel>
+        <MenuItem onSelect={() => openApp("files")}>New Finder Window</MenuItem>
+        <MenuItem onSelect={() => openApp("terminal")}>Open Terminal Here</MenuItem>
+        <MenuItem onSelect={() => location.reload()}>Refresh</MenuItem>
+        <MenuSeparator />
+        <MenuSub label="Change Wallpaper">
           {Object.keys(WALLPAPERS).map((w) => (
-            <MenuItem key={w} onClick={() => setWallpaper(w)}>
+            <MenuItem key={w} onSelect={() => setWallpaper(w)}>
               <span className="capitalize">{w}</span>
             </MenuItem>
           ))}
-          <div className="my-1 border-t border-white/10" />
-          <MenuItem onClick={() => openApp("settings")}>Display Settings</MenuItem>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MenuItem({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex w-full items-center px-3 py-1.5 text-left text-white/85 transition hover:bg-primary hover:text-primary-foreground"
-    >
-      {children}
-    </button>
+        </MenuSub>
+        <MenuItem onSelect={() => openApp("settings")}>Display Settings…</MenuItem>
+        <MenuSeparator />
+        <MenuItem onSelect={() => useOS.getState().setActivities(true)}>Mission Control</MenuItem>
+        <MenuItem onSelect={() => useOS.getState().setLauncherOpen(true)}>Launchpad</MenuItem>
+      </MenuContent>
+    </Menu>
   );
 }

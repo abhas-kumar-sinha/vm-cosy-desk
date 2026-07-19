@@ -32,6 +32,7 @@ interface OSState {
   wallpaper: string;
   accent: string;
   showActivities: boolean;
+  isFullscreen: boolean;
 
   openApp: (appId: AppId, opts?: { title?: string; payload?: Record<string, unknown> }) => void;
   closeWindow: (id: string) => void;
@@ -44,6 +45,7 @@ interface OSState {
   setWallpaper: (w: string) => void;
   setAccent: (a: string) => void;
   setActivities: (v: boolean) => void;
+  setFullscreen: (v: boolean) => void;
 }
 
 const APP_TITLES: Record<AppId, string> = {
@@ -74,6 +76,7 @@ export const useOS = create<OSState>((set, get) => ({
   wallpaper: "aurora",
   accent: "orange",
   showActivities: false,
+  isFullscreen: false,
 
   openApp: (appId, opts) => {
     const existing = get().windows.find((w) => w.appId === appId && !opts?.payload);
@@ -165,4 +168,5 @@ export const useOS = create<OSState>((set, get) => ({
   setWallpaper: (w) => set({ wallpaper: w }),
   setAccent: (a) => set({ accent: a }),
   setActivities: (v) => set({ showActivities: v, launcherOpen: false }),
+  setFullscreen: (v) => set({ isFullscreen: v }),
 }));
