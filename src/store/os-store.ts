@@ -32,6 +32,7 @@ interface OSState {
   wallpaper: string;
   accent: string;
   showActivities: boolean;
+  isFullscreen: boolean;
 
   openApp: (appId: AppId, opts?: { title?: string; payload?: Record<string, unknown> }) => void;
   closeWindow: (id: string) => void;
@@ -44,6 +45,7 @@ interface OSState {
   setWallpaper: (w: string) => void;
   setAccent: (a: string) => void;
   setActivities: (v: boolean) => void;
+  setFullscreen: (v: boolean) => void;
 }
 
 const APP_TITLES: Record<AppId, string> = {
