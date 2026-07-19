@@ -303,26 +303,28 @@ function QuickLook({ entry, onClose, onOpenInEditor }: { entry: FsEntry; onClose
   );
 }
 
-// Resumable upload via tus. Lazily loads @uppy/tus only when needed so the
-// initial bundle stays small.
+// Resumable upload via tus. Encodes the target directory INSIDE tus metadata
+// so it survives every PATCH continuation — headers get dropped on resumed
+// chunks and multi-GB files were failing because of that.
 async function uploadFileTus(file: File, targetDir: string) {
-  const { Upload: TusUpload } = await import("tus-js-client").catch(() => ({ Upload: null as unknown as new (...args: unknown[]) => unknown }));
-  if (TusUpload) {
-    await new Promise<void>((resolve, reject) => {
-      const up = new (TusUpload as unknown as new (file: File, opts: Record<string, unknown>) => { start: () => void })(file, {
-        endpoint: "/api/uploads",
-        retryDelays: [0, 1000, 3000, 5000],
-        chunkSize: 8 * 1024 * 1024,
-        metadata: { filename: file.name, filetype: file.type },
-        headers: { "X-Target-Dir": targetDir },
-        onError: (err: Error) => reject(err),
-        onSuccess: () => resolve(),
-      });
-      up.start();
+  const mod = await import("tus-js-client");
+  const TusUpload = mod.Upload;
+  await new Promise<void>((resolve, reject) => {
+    const up = new TusUpload(file, {
+      endpoint: "/api/uploads",
+      retryDelays: [0, 1000, 3000, 5000, 10000],
+      chunkSize: 8 * 1024 * 1024, // 8 MB
+      metadata: {
+        filename: file.name,
+        filetype: file.type || "application/octet-stream",
+        targetDir,
+      },
+      onError: (err: Error) => {
+        console.error("upload failed", err);
+        reject(err);
+      },
+      onSuccess: () => resolve(),
     });
-    return;
-  }
-  // Fallback: single POST via fs write (small files only)
-  const buf = await file.arrayBuffer();
-  await agent.fs.write(`${targetDir}/${file.name}`, new TextDecoder().decode(buf));
+    up.start();
+  });
 }
