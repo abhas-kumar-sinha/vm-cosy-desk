@@ -31,12 +31,12 @@ fi
 
 echo "==> Building web bundle (this can take ~2 min the first time)"
 cd "$INSTALL_DIR"
-npm ci
+npm i
 npm run build
 
 echo "==> Installing agent dependencies (compiles node-pty + authenticate-pam)"
 cd "$INSTALL_DIR/agent"
-npm ci
+npm i
 
 echo "==> Writing /etc/lovable-os/config.json"
 mkdir -p /etc/lovable-os
